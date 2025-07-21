@@ -1,367 +1,213 @@
 <?php
-// NoticiasDM - PHP puro para hosting compartido
-// Production ready for Hostinger shared hosting with custom domain
+require_once 'config/database.php';
 
-// Configuración de Supabase
-define('SUPABASE_URL', 'https://your-project.supabase.co'); // Replace with your Supabase URL
-define('SUPABASE_ANON_KEY', 'your_anon_key_here'); // Replace with your anon key
+// Page meta data
+$page_title = 'NoticiasDM - Noticias de República Dominicana';
+$meta_description = 'Tu fuente confiable de noticias de República Dominicana. Últimas noticias de política, deportes, tecnología, economía y cultura.';
 
-// Production settings
-error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
-ini_set('display_errors', 0); // Hide errors in production
-ini_set('user_agent', 'NoticiasDM/1.0 (Hostinger)');
+// Get featured article
+$featured_articles = getArticles(1, true);
+$featured_article = !empty($featured_articles) ? $featured_articles[0] : null;
 
-// Clase para manejar conexión con Supabase
-class SupabaseClient {
-    private $url;
-    private $key;
-    
-    public function __construct($url, $key) {
-        $this->url = $url;
-        $this->key = $key;
-    }
-    
-    public function getArticles() {
-        $endpoint = 'articles?select=*,category:categories(*)&order=published_at.desc';
-        return $this->makeRequest($endpoint);
-    }
-    
-    public function getCategories() {
-        $endpoint = 'categories?order=name.asc';
-        return $this->makeRequest($endpoint);
-    }
-    
-    private function makeRequest($endpoint, $method = 'GET', $data = null) {
-        $url = $this->url . '/rest/v1/' . $endpoint;
-        
-        $headers = [
-            'apikey: ' . $this->key,
-            'Authorization: Bearer ' . $this->key,
-            'Content-Type: application/json',
-            'Prefer: return=representation',
-            'User-Agent: NoticiasDM/1.0 (Hostinger)'
-        ];
-        
-        $context = [
-            'http' => [
-                'method' => $method,
-                'header' => implode("\r\n", $headers),
-                'ignore_errors' => true,
-                'timeout' => 30
-            ]
-        ];
-        
-        if ($data && $method !== 'GET') {
-            $context['http']['content'] = json_encode($data);
-        }
-        
-        $result = file_get_contents($url, false, stream_context_create($context));
-        
-        if ($result === false) {
-            return ['error' => 'No se pudo conectar con la base de datos'];
-        }
-        
-        return json_decode($result);
-    }
+// Get regular articles
+$regular_articles = getArticles(6, false);
+if ($featured_article) {
+    $regular_articles = array_filter($regular_articles, function($article) use ($featured_article) {
+        return $article['id'] != $featured_article['id'];
+    });
+    $regular_articles = array_slice($regular_articles, 0, 5);
 }
 
-// Inicializar cliente de Supabase
-$supabase = new SupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Get categories
+$categories = getCategories();
 
-// Obtener datos
-$articles_data = $supabase->getArticles();
-$categories_data = $supabase->getCategories();
-
-// Procesar datos
-$articles = is_array($articles_data) ? $articles_data : [];
-$categories = is_array($categories_data) ? $categories_data : [];
+include 'includes/header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="NoticiasDM - Tu fuente confiable de noticias de República Dominicana. Últimas noticias, política, deportes, tecnología y más.">
-    <meta name="keywords" content="noticias, República Dominicana, política, deportes, tecnología, economía">
-    <meta name="author" content="NoticiasDM">
-    <meta property="og:title" content="NoticiasDM - Noticias de República Dominicana">
-    <meta property="og:description" content="Tu fuente confiable de noticias de República Dominicana">
-    <meta property="og:type" content="website">
-    <link rel="canonical" href="https://<?php echo $_SERVER['HTTP_HOST']; ?>">
-    <title>NoticiasDM - Noticias de República Dominicana</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #2d3748;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-        
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-        }
-        
-        header h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #36b7ff, #6366f1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #4a5568;
-            font-weight: 500;
-        }
-        
-        main {
-            padding: 3rem 0;
-        }
-        
-        .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .article-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-        
-        .article-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-bottom: 3px solid #36b7ff;
-        }
-        
-        .article-content {
-            padding: 1.5rem;
-        }
-        
-        .category-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .article-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: #1a202c;
-            line-height: 1.4;
-        }
-        
-        .article-excerpt {
-            color: #4a5568;
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-        
-        .article-meta {
-            font-size: 0.9rem;
-            color: #718096;
-            font-weight: 500;
-        }
-        
-        .error-message {
-            background: #fed7d7;
-            color: #c53030;
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            border-left: 4px solid #e53e3e;
-            margin: 2rem 0;
-        }
-        
-        .no-articles {
-            text-align: center;
-            padding: 3rem;
-            color: #718096;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: #36b7ff;
-        }
-        
-        .stats {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        
-        footer {
-            background: #1a202c;
-            color: white;
-            text-align: center;
-            padding: 2rem 0;
-            margin-top: 3rem;
-        }
-        
-        footer p {
-            margin-bottom: 0.5rem;
-        }
-        
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
-            }
-            
-            .articles-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-            
-            .container {
-                padding: 0 0.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>NoticiasDM</h1>
-            <p class="subtitle">Tu fuente confiable de noticias de República Dominicana</p>
-            <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
-                🌐 <?php echo $_SERVER['HTTP_HOST']; ?>
-            </p>
-        </div>
-    </header>
-
-    <main>
-        <div class="container">
-            <?php if (isset($articles_data['error'])): ?>
-                <div class="error-message">
-                    <strong>⚠️ Error de conexión:</strong> No se pudieron cargar las noticias en este momento.
-                    <br><small>Por favor, intenta nuevamente en unos minutos.</small>
-                </div>
-            <?php elseif (empty($articles)): ?>
-                <div class="no-articles">
-                    <h2>📰 No hay artículos publicados</h2>
-                    <p>Vuelve pronto para ver las últimas noticias de República Dominicana.</p>
-                </div>
-            <?php else: ?>
-                <div class="stats">
-                    <h2 style="color: #2d3748; margin-bottom: 0.5rem;">
-                        📊 Dashboard de Noticias
-                    </h2>
-                    <p style="color: #4a5568;">
-                        <strong><?php echo count($articles); ?></strong> artículos publicados | 
-                        <strong><?php echo count($categories); ?></strong> categorías | 
-                        Última actualización: <?php echo date('d/m/Y H:i'); ?>
-                    </p>
-                </div>
-                
-                <h2 style="text-align: center; margin-bottom: 2rem; color: #2d3748;">
-                    🔥 Últimas Noticias
-                </h2>
-                
-                <div class="articles-grid">
-                    <?php foreach ($articles as $article): ?>
-                        <article class="article-card">
-                            <?php if ($article->featured_image): ?>
-                                <img src="<?php echo htmlspecialchars($article->featured_image); ?>" 
-                                     alt="<?php echo htmlspecialchars($article->title); ?>" 
-                                     class="article-image"
-                                     loading="lazy">
-                            <?php endif; ?>
-                            
-                            <div class="article-content">
-                                <?php if ($article->category): ?>
-                                    <span class="category-badge" 
-                                          style="background-color: <?php echo htmlspecialchars($article->category->color); ?>">
-                                        <?php echo htmlspecialchars($article->category->name); ?>
-                                    </span>
-                                <?php endif; ?>
-                                
-                                <h3 class="article-title">
-                                    <?php echo htmlspecialchars($article->title); ?>
-                                </h3>
-                                
-                                <?php if ($article->excerpt): ?>
-                                    <p class="article-excerpt">
-                                        <?php echo htmlspecialchars($article->excerpt); ?>
-                                    </p>
-                                <?php endif; ?>
-                                
-                                <div class="article-meta">
-                                    <?php if ($article->published_at): ?>
-                                        📅 <?php echo date('d/m/Y H:i', strtotime($article->published_at)); ?>
-                                    <?php endif; ?>
-                                </div>
+<main class="min-h-screen">
+    <!-- Hero Section -->
+    <?php if ($featured_article): ?>
+    <section class="hero-gradient py-12">
+        <div class="container mx-auto px-4">
+            <article class="bg-white rounded-2xl shadow-2xl overflow-hidden card-hover animate-slide-up">
+                <div class="lg:flex">
+                    <div class="lg:w-1/2">
+                        <img src="<?php echo htmlspecialchars($featured_article['featured_image']); ?>" 
+                             alt="<?php echo htmlspecialchars($featured_article['title']); ?>"
+                             class="w-full h-64 lg:h-full object-cover">
+                    </div>
+                    <div class="lg:w-1/2 p-8 lg:p-12">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold text-white <?php echo $featured_article['category_color']; ?>">
+                                <i class="<?php echo $featured_article['category_icon']; ?> mr-2"></i>
+                                <?php echo htmlspecialchars($featured_article['category']); ?>
+                            </span>
+                            <div class="flex items-center text-gray-500 text-sm">
+                                <i class="fa-duotone fa-clock mr-1"></i>
+                                <?php echo $featured_article['read_time']; ?> min
                             </div>
-                        </article>
-                    <?php endforeach; ?>
+                        </div>
+                        
+                        <h1 class="text-3xl lg:text-4xl font-black text-gray-900 mb-6 leading-tight">
+                            <a href="articulo.php?id=<?php echo $featured_article['id']; ?>" 
+                               class="hover:text-blue-600 transition-colors">
+                                <?php echo htmlspecialchars($featured_article['title']); ?>
+                            </a>
+                        </h1>
+                        
+                        <p class="text-xl text-gray-600 mb-6 leading-relaxed">
+                            <?php echo htmlspecialchars($featured_article['excerpt']); ?>
+                        </p>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-gray-500">
+                                <i class="fa-duotone fa-user-pen mr-2"></i>
+                                <span class="font-medium"><?php echo htmlspecialchars($featured_article['author']); ?></span>
+                                <span class="mx-2">•</span>
+                                <i class="fa-duotone fa-calendar mr-1"></i>
+                                <span><?php echo formatDate($featured_article['published_at']); ?></span>
+                            </div>
+                            
+                            <a href="articulo.php?id=<?php echo $featured_article['id']; ?>" 
+                               class="inline-flex items-center px-6 py-3 gradient-bg text-white font-bold rounded-full hover:shadow-lg transition-all transform hover:scale-105">
+                                <span>Leer más</span>
+                                <i class="fa-duotone fa-arrow-right ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            <?php endif; ?>
+            </article>
         </div>
-    </main>
+    </section>
+    <?php endif; ?>
 
-    <footer>
-        <div class="container">
-            <p>&copy; <?php echo date('Y'); ?> NoticiasDM. Todos los derechos reservados.</p>
-            <p>🚀 Powered by Supabase | 🌐 Hosting: Hostinger | 🇩🇴 Made in RD</p>
-            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">
-                Dominio: <?php echo $_SERVER['HTTP_HOST']; ?> | 
-                Servidor: <?php echo gethostname(); ?> |
-                PHP: <?php echo PHP_VERSION; ?>
-            </p>
+    <!-- Latest News Section -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-black text-gray-900 mb-4">
+                    <i class="fa-duotone fa-newspaper text-blue-500 mr-3"></i>
+                    Últimas Noticias
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Mantente informado con las noticias más recientes y relevantes de República Dominicana
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <?php foreach ($regular_articles as $article): ?>
+                <article class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover animate-fade-in">
+                    <div class="relative">
+                        <img src="<?php echo htmlspecialchars($article['featured_image']); ?>" 
+                             alt="<?php echo htmlspecialchars($article['title']); ?>"
+                             class="w-full h-48 object-cover">
+                        <div class="absolute top-4 left-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-white <?php echo $article['category_color']; ?>">
+                                <i class="<?php echo $article['category_icon']; ?> mr-1"></i>
+                                <?php echo htmlspecialchars($article['category']); ?>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-tight">
+                            <a href="articulo.php?id=<?php echo $article['id']; ?>" 
+                               class="hover:text-blue-600 transition-colors">
+                                <?php echo htmlspecialchars($article['title']); ?>
+                            </a>
+                        </h3>
+                        
+                        <p class="text-gray-600 mb-4 line-clamp-3">
+                            <?php echo htmlspecialchars($article['excerpt']); ?>
+                        </p>
+                        
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <div class="flex items-center">
+                                <i class="fa-duotone fa-user-pen mr-1"></i>
+                                <span><?php echo htmlspecialchars($article['author']); ?></span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="flex items-center">
+                                    <i class="fa-duotone fa-clock mr-1"></i>
+                                    <?php echo $article['read_time']; ?> min
+                                </span>
+                                <span class="flex items-center">
+                                    <i class="fa-duotone fa-calendar mr-1"></i>
+                                    <?php echo date('d/m/Y', strtotime($article['published_at'])); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </footer>
-    
-    <!-- Analytics placeholder -->
-    <script>
-        // Add your Google Analytics or other tracking code here
-        console.log('NoticiasDM loaded successfully on <?php echo $_SERVER['HTTP_HOST']; ?>');
-    </script>
-</body>
-</html>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-black text-gray-900 mb-4">
+                    <i class="fa-duotone fa-tags text-blue-500 mr-3"></i>
+                    Explora por Categorías
+                </h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Descubre noticias organizadas por temas de tu interés
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <?php foreach ($categories as $category): ?>
+                <a href="categoria.php?cat=<?php echo urlencode($category['slug']); ?>" 
+                   class="bg-white rounded-xl p-6 shadow-lg category-hover animate-fade-in group">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="p-3 rounded-full <?php echo $category['color']; ?> text-white">
+                            <i class="<?php echo $category['icon']; ?> text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                <?php echo htmlspecialchars($category['name']); ?>
+                            </h3>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        <?php echo htmlspecialchars($category['description']); ?>
+                    </p>
+                    <div class="mt-4 flex items-center text-blue-600 font-medium">
+                        <span>Ver más</span>
+                        <i class="fa-duotone fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="py-16 gradient-bg">
+        <div class="container mx-auto px-4 text-center">
+            <div class="max-w-2xl mx-auto">
+                <h2 class="text-3xl font-black text-white mb-4">
+                    <i class="fa-duotone fa-envelope text-blue-200 mr-3"></i>
+                    Suscríbete a NoticiasDM
+                </h2>
+                <p class="text-xl text-blue-100 mb-8">
+                    Recibe las noticias más importantes directamente en tu correo
+                </p>
+                <form class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                    <input type="email" 
+                           placeholder="Tu correo electrónico" 
+                           class="flex-1 px-6 py-3 rounded-full border-0 focus:ring-4 focus:ring-blue-300 focus:outline-none">
+                    <button type="submit" 
+                            class="px-8 py-3 bg-white text-blue-600 font-bold rounded-full hover:bg-blue-50 transition-colors transform hover:scale-105">
+                        <i class="fa-duotone fa-paper-plane mr-2"></i>
+                        Suscribirse
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+
+<?php include 'includes/footer.php'; ?>
