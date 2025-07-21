@@ -1,13 +1,628 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NoticiasDM News Website</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NoticiasDM - Tu fuente confiable de noticias de República Dominicana">
+    <title>NoticiasDM - Noticias de República Dominicana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        .site-header {
+            background: linear-gradient(135deg, #36b7ff, #2da5e8);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .site-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .site-description {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 3rem 0;
+        }
+        
+        .hero-article {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 3rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .hero-article:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .hero-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        
+        .hero-content {
+            padding: 2rem;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .article-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            color: #2d3748;
+        }
+        
+        .article-meta {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .article-excerpt {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+        }
+        
+        .read-more-btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: #36b7ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .read-more-btn:hover {
+            background: #2da5e8;
+            transform: translateY(-2px);
+        }
+        
+        /* Section Title */
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #2d3748;
+        }
+        
+        /* Articles Grid */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .article-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .article-card:hover .card-image {
+            transform: scale(1.05);
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+            color: #2d3748;
+        }
+        
+        .card-excerpt {
+            color: #4a5568;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .card-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+        }
+        
+        /* Categories Section */
+        .categories-section {
+            margin-top: 4rem;
+        }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .category-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .category-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .category-description {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        .site-footer {
+            background: #1a202c;
+            color: white;
+            text-align: center;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .footer-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #36b7ff;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-links a {
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: #36b7ff;
+        }
+        
+        .copyright {
+            border-top: 1px solid #2d3748;
+            padding-top: 2rem;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 2rem;
+            }
+            
+            .article-title {
+                font-size: 1.8rem;
+            }
+            
+            .articles-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .article-card, .category-card {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">NoticiasDM</h1>
+            <p class="site-description">Tu fuente confiable de noticias de República Dominicana</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Hero Article -->
+            <article class="hero-article">
+                <img src="https://images.pexels.com/photos/1174732/pexels-photo-1174732.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                     alt="Tecnología en turismo" class="hero-image">
+                
+                <div class="hero-content">
+                    <span class="category-badge" style="background-color: #2563eb;">Tecnología</span>
+                    
+                    <h2 class="article-title">
+                        Nuevas Tecnologías Revolucionan el Sector Turístico Dominicano
+                    </h2>
+                    
+                    <div class="article-meta">
+                        Por María González • 15 de Enero, 2024 • 4 min de lectura
+                    </div>
+                    
+                    <p class="article-excerpt">
+                        El sector turístico de República Dominicana está experimentando una transformación 
+                        sin precedentes gracias a la implementación de nuevas tecnologías que mejoran la 
+                        experiencia del visitante y optimizan los procesos operativos.
+                    </p>
+                    
+                    <a href="#" class="read-more-btn">Leer artículo completo</a>
+                </div>
+            </article>
+            
+            <!-- Section Title -->
+            <h2 class="section-title">Últimas Noticias</h2>
+            
+            <!-- Articles Grid -->
+            <div class="articles-grid">
+                <article class="article-card">
+                    <img src="https://images.pexels.com/photos/844124/pexels-photo-844124.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                         alt="Criptomonedas" class="card-image">
+                    
+                    <div class="card-content">
+                        <span class="category-badge" style="background-color: #ca8a04;">Economía</span>
+                        
+                        <h3 class="card-title">
+                            Análisis: El Impacto de las Criptomonedas en la Economía Nacional
+                        </h3>
+                        
+                        <p class="card-excerpt">
+                            Las criptomonedas muestran un crecimiento explosivo en República Dominicana, 
+                            generando debate sobre regulación y adopción en el sistema financiero tradicional.
+                        </p>
+                        
+                        <div class="card-meta">
+                            Por Carlos Rodríguez • 12 de Enero, 2024 • 6 min de lectura
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="article-card">
+                    <img src="https://images.pexels.com/photos/1618269/pexels-photo-1618269.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                         alt="Baseball" class="card-image">
+                    
+                    <div class="card-content">
+                        <span class="category-badge" style="background-color: #16a34a;">Deportes</span>
+                        
+                        <h3 class="card-title">
+                            Temporada de Baseball: Análisis del Rendimiento de Jugadores Dominicanos en MLB
+                        </h3>
+                        
+                        <p class="card-excerpt">
+                            Los peloteros dominicanos brillan en la temporada 2024 de MLB con múltiples 
+                            récords y actuaciones destacadas que consolidan el talento nacional.
+                        </p>
+                        
+                        <div class="card-meta">
+                            Por Roberto Martínez • 10 de Enero, 2024 • 5 min de lectura
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="article-card">
+                    <img src="https://images.pexels.com/photos/1181467/pexels-photo-1181467.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                         alt="Política" class="card-image">
+                    
+                    <div class="card-content">
+                        <span class="category-badge" style="background-color: #dc2626;">Política</span>
+                        
+                        <h3 class="card-title">
+                            Nuevas Reformas Educativas Buscan Modernizar el Sistema Nacional
+                        </h3>
+                        
+                        <p class="card-excerpt">
+                            El gobierno presenta un plan integral de reformas educativas que incluye 
+                            tecnología, infraestructura y capacitación docente para mejorar la calidad.
+                        </p>
+                        
+                        <div class="card-meta">
+                            Por Ana Pérez • 8 de Enero, 2024 • 7 min de lectura
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="article-card">
+                    <img src="https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                         alt="Cultura" class="card-image">
+                    
+                    <div class="card-content">
+                        <span class="category-badge" style="background-color: #7c3aed;">Cultura</span>
+                        
+                        <h3 class="card-title">
+                            Festival de Merengue 2024 Celebra la Riqueza Musical Dominicana
+                        </h3>
+                        
+                        <p class="card-excerpt">
+                            El festival anual reúne a los mejores exponentes del merengue nacional e 
+                            internacional en una celebración de la identidad cultural dominicana.
+                        </p>
+                        
+                        <div class="card-meta">
+                            Por Luis Fernández • 5 de Enero, 2024 • 3 min de lectura
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="article-card">
+                    <img src="https://images.pexels.com/photos/1181677/pexels-photo-1181677.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                         alt="Salud" class="card-image">
+                    
+                    <div class="card-content">
+                        <span class="category-badge" style="background-color: #059669;">Salud</span>
+                        
+                        <h3 class="card-title">
+                            Campaña Nacional de Vacunación Alcanza el 85% de Cobertura
+                        </h3>
+                        
+                        <p class="card-excerpt">
+                            Las autoridades sanitarias reportan avances significativos en la campaña 
+                            de inmunización, superando las metas establecidas para este período.
+                        </p>
+                        
+                        <div class="card-meta">
+                            Por Dr. Carmen Jiménez • 3 de Enero, 2024 • 4 min de lectura
+                        </div>
+                    </div>
+                </article>
+                
+                <article class="article-card">
+                    <img src="https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                         alt="Medio Ambiente" class="card-image">
+                    
+                    <div class="card-content">
+                        <span class="category-badge" style="background-color: #0891b2;">Medio Ambiente</span>
+                        
+                        <h3 class="card-title">
+                            Proyecto de Energía Solar Reduce Emisiones en un 30% en Santiago
+                        </h3>
+                        
+                        <p class="card-excerpt">
+                            La implementación de paneles solares en edificios públicos demuestra el 
+                            compromiso del país con la sostenibilidad y las energías renovables.
+                        </p>
+                        
+                        <div class="card-meta">
+                            Por Miguel Torres • 1 de Enero, 2024 • 6 min de lectura
+                        </div>
+                    </div>
+                </article>
+            </div>
+            
+            <!-- Categories Section -->
+            <section class="categories-section">
+                <h2 class="section-title">Explora por Categorías</h2>
+                
+                <div class="categories-grid">
+                    <div class="category-card" style="border-left: 4px solid #dc2626;">
+                        <h3 class="category-name" style="color: #dc2626;">Política</h3>
+                        <p class="category-description">
+                            Noticias sobre política nacional e internacional, análisis gubernamental y electoral.
+                        </p>
+                    </div>
+                    
+                    <div class="category-card" style="border-left: 4px solid #16a34a;">
+                        <h3 class="category-name" style="color: #16a34a;">Deportes</h3>
+                        <p class="category-description">
+                            Cobertura deportiva completa, baseball, fútbol y análisis de rendimiento atlético.
+                        </p>
+                    </div>
+                    
+                    <div class="category-card" style="border-left: 4px solid #2563eb;">
+                        <h3 class="category-name" style="color: #2563eb;">Tecnología</h3>
+                        <p class="category-description">
+                            Últimas noticias tecnológicas, innovación digital y transformación empresarial.
+                        </p>
+                    </div>
+                    
+                    <div class="category-card" style="border-left: 4px solid #ca8a04;">
+                        <h3 class="category-name" style="color: #ca8a04;">Economía</h3>
+                        <p class="category-description">
+                            Análisis económico, mercados financieros, criptomonedas y desarrollo comercial.
+                        </p>
+                    </div>
+                    
+                    <div class="category-card" style="border-left: 4px solid #7c3aed;">
+                        <h3 class="category-name" style="color: #7c3aed;">Cultura</h3>
+                        <p class="category-description">
+                            Arte, música, festivales y eventos culturales que celebran la identidad dominicana.
+                        </p>
+                    </div>
+                    
+                    <div class="category-card" style="border-left: 4px solid #059669;">
+                        <h3 class="category-name" style="color: #059669;">Salud</h3>
+                        <p class="category-description">
+                            Información médica, campañas de salud pública y avances en medicina nacional.
+                        </p>
+                    </div>
+                </div>
+            </section>
+            
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h3 class="footer-title">NoticiasDM</h3>
+                    <p>Tu fuente confiable de noticias de República Dominicana. Información veraz, oportuna y de calidad.</p>
+                </div>
+                
+                <div>
+                    <h4 style="color: white; margin-bottom: 1rem;">Enlaces Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Inicio</a></li>
+                        <li><a href="#">Política</a></li>
+                        <li><a href="#">Deportes</a></li>
+                        <li><a href="#">Tecnología</a></li>
+                        <li><a href="#">Economía</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: white; margin-bottom: 1rem;">Categorías</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Noticias Nacionales</a></li>
+                        <li><a href="#">Internacionales</a></li>
+                        <li><a href="#">Cultura</a></li>
+                        <li><a href="#">Entretenimiento</a></li>
+                        <li><a href="#">Opinión</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 style="color: white; margin-bottom: 1rem;">Contacto</h4>
+                    <p>📧 info@noticiasdm.com</p>
+                    <p>📞 +1 (809) 123-4567</p>
+                    <p>📍 Santo Domingo, RD</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2024 NoticiasDM. Todos los derechos reservados.</p>
+                <p>🚀 Powered by HTML5 | 🌐 Ready for Production | 🇩🇴 Made in RD</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple JavaScript for interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to article cards
+            const articleCards = document.querySelectorAll('.article-card');
+            articleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // In a real app, this would navigate to the full article
+                    alert('Navegando al artículo completo...');
+                });
+            });
+            
+            // Add click handlers to category cards
+            const categoryCards = document.querySelectorAll('.category-card');
+            categoryCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const categoryName = card.querySelector('.category-name').textContent;
+                    alert(`Navegando a la categoría: ${categoryName}`);
+                });
+            });
+            
+            // Smooth scrolling for internal links
+            const links = document.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
 </html>
