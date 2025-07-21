@@ -1,120 +1,126 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit, Trash2, Save, Users, FileText, Tag, Layers, Settings } from 'lucide-react';
-import { supabase, Article, Writer, Category, Tag as TagType, Subtag } from '../lib/supabase';
 
 interface AdminPanelProps {
   onClose: () => void;
+  articles: any[];
+  writers: any[];
+  categories: any[];
+  tags: any[];
+  subtags: any[];
+  onArticleUpdate: (article: any) => void;
+  onArticleDelete: (id: string) => void;
   darkMode: boolean;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, darkMode }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ 
+  onClose, 
+  articles: propArticles, 
+  writers: propWriters, 
+  categories: propCategories, 
+  tags: propTags, 
+  subtags: propSubtags,
+  onArticleUpdate,
+  onArticleDelete,
+  darkMode 
+}) => {
   const [activeTab, setActiveTab] = useState<'articles' | 'writers' | 'categories' | 'tags' | 'subtags'>('articles');
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [writers, setWriters] = useState<Writer[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<TagType[]>([]);
-  const [subtags, setSubtags] = useState<Subtag[]>([]);
+  const [articles, setArticles] = useState(propArticles);
+  const [writers, setWriters] = useState(propWriters);
+  const [categories, setCategories] = useState(propCategories);
+  const [tags, setTags] = useState(propTags);
+  const [subtags, setSubtags] = useState(propSubtags);
   const [loading, setLoading] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    fetchData();
-  }, [activeTab]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      switch (activeTab) {
-        case 'articles':
-          const { data: articlesData } = await supabase
-            .from('articles')
-            .select(`
-              *,
-              writer:writers(name),
-              category:categories(name, color)
-            `)
-            .order('created_at', { ascending: false });
-          setArticles(articlesData || []);
-          break;
-        case 'writers':
-          const { data: writersData } = await supabase
-            .from('writers')
-            .select('*')
-            .order('name');
-          setWriters(writersData || []);
-          break;
-        case 'categories':
-          const { data: categoriesData } = await supabase
-            .from('categories')
-            .select('*')
-            .order('name');
-          setCategories(categoriesData || []);
-          break;
-        case 'tags':
-          const { data: tagsData } = await supabase
-            .from('tags')
-            .select('*')
-            .order('name');
-          setTags(tagsData || []);
-          break;
-        case 'subtags':
-          const { data: subtagsData } = await supabase
-            .from('subtags')
-            .select(`
-              *,
-              category:categories(name)
-            `)
-            .order('name');
-          setSubtags(subtagsData || []);
-          break;
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Update local state when props change
+    setArticles(propArticles);
+    setWriters(propWriters);
+    setCategories(propCategories);
+    setTags(propTags);
+    setSubtags(propSubtags);
+  }, [propArticles, propWriters, propCategories, propTags, propSubtags]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este elemento?')) return;
     
-    try {
-      const { error } = await supabase
-        .from(activeTab)
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting:', error);
+    if (activeTab === 'articles') {
+      onArticleDelete(id);
+      setArticles(prev => prev.filter(item => item.id !== id));
+    } else {
+      // For other tabs, just remove from local state (mock data)
+      switch (activeTab) {
+        case 'writers':
+          setWriters(prev => prev.filter(item => item.id !== id));
+          break;
+        case 'categories':
+          setCategories(prev => prev.filter(item => item.id !== id));
+          break;
+        case 'tags':
+          setTags(prev => prev.filter(item => item.id !== id));
+          break;
+        case 'subtags':
+          setSubtags(prev => prev.filter(item => item.id !== id));
+          break;
+      }
     }
   };
 
   const handleSave = async (data: any) => {
-    try {
-      if (editingItem) {
-        // Update
-        const { error } = await supabase
-          .from(activeTab)
-          .update({ ...data, updated_at: new Date().toISOString() })
-          .eq('id', editingItem.id);
-        if (error) throw error;
+    const newItem = {
+      ...data,
+      id: editingItem?.id || Date.now().toString(),
+      created_at: editingItem?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    if (editingItem) {
+      // Update existing item
+      if (activeTab === 'articles') {
+        onArticleUpdate(newItem);
+        setArticles(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
       } else {
-        // Create
-        const { error } = await supabase
-          .from(activeTab)
-          .insert(data);
-        if (error) throw error;
+        // Update in local state for other tabs
+        switch (activeTab) {
+          case 'writers':
+            setWriters(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
+            break;
+          case 'categories':
+            setCategories(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
+            break;
+          case 'tags':
+            setTags(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
+            break;
+          case 'subtags':
+            setSubtags(prev => prev.map(item => item.id === editingItem.id ? newItem : item));
+            break;
+        }
       }
-      
-      setEditingItem(null);
-      setShowForm(false);
-      fetchData();
-    } catch (error) {
-      console.error('Error saving:', error);
+    } else {
+      // Create new item
+      switch (activeTab) {
+        case 'articles':
+          setArticles(prev => [newItem, ...prev]);
+          break;
+        case 'writers':
+          setWriters(prev => [newItem, ...prev]);
+          break;
+        case 'categories':
+          setCategories(prev => [newItem, ...prev]);
+          break;
+        case 'tags':
+          setTags(prev => [newItem, ...prev]);
+          break;
+        case 'subtags':
+          setSubtags(prev => [newItem, ...prev]);
+          break;
+      }
     }
+    
+    setEditingItem(null);
+    setShowForm(false);
   };
 
   const tabs = [
@@ -267,12 +273,12 @@ const AdminTable: React.FC<{
       case 'Título':
         return <span className="font-medium">{item.title}</span>;
       case 'Autor':
-        return item.writer?.name || 'Sin autor';
+        return item.author || 'Sin autor';
       case 'Categoría':
         return (
           <span
             className="px-2 py-1 rounded-full text-xs font-medium text-white"
-            style={{ backgroundColor: item.category?.color || '#gray' }}
+            style={{ backgroundColor: item.category?.color || '#36b7ff' }}
           >
             {item.category?.name || 'Sin categoría'}
           </span>
@@ -302,7 +308,7 @@ const AdminTable: React.FC<{
           </div>
         );
       case 'Fecha':
-        return new Date(item.created_at).toLocaleDateString('es-ES');
+        return new Date(item.publishedAt || item.created_at || Date.now()).toLocaleDateString('es-ES');
       case 'Acciones':
         return (
           <div className="flex space-x-2">

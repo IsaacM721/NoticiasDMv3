@@ -7,7 +7,8 @@ import WritersDirectory from './components/WritersDirectory';
 import WriterProfile from './components/WriterProfile';
 import Footer from './components/Footer';
 import AdminPanel from './components/AdminPanel';
-import { useSupabaseData } from './hooks/useSupabase';
+import { articles as mockArticles, writers as mockWriters, categories as mockCategories, tags as mockTags, subtags as mockSubtags } from './data/mockData';
+import { useArticles } from './hooks/useArticles';
 
 function App() {
   const [isWriterMode, setIsWriterMode] = useState(false);
@@ -17,8 +18,14 @@ function App() {
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Use Supabase data
-  const { articles, writers, categories, tags, subtags, loading, error, refetch } = useSupabaseData();
+  // Use mock data with local state management
+  const { articles, addArticle, updateArticle, deleteArticle } = useArticles(mockArticles);
+  const [writers] = useState(mockWriters);
+  const [categories] = useState(mockCategories);
+  const [tags] = useState(mockTags);
+  const [subtags] = useState(mockSubtags);
+  const [loading] = useState(false);
+  const [error] = useState(null);
 
   // Load dark mode preference from localStorage
   useEffect(() => {
@@ -81,14 +88,12 @@ function App() {
   };
 
   const handleArticleCreate = (newArticle: any) => {
-    // In a real app, this would save to Supabase
-    refetch();
+    addArticle(newArticle);
     setIsWriterMode(false);
   };
 
   const handleArticleUpdate = (updatedArticle: any) => {
-    // In a real app, this would update in Supabase
-    refetch();
+    updateArticle(updatedArticle);
   };
 
   const handleDarkModeToggle = () => {
@@ -124,7 +129,6 @@ function App() {
         <div className="text-center">
           <p className="text-red-500 mb-4">Error: {error}</p>
           <button
-            onClick={refetch}
             className="px-4 py-2 bg-[#36b7ff] text-white rounded-lg hover:bg-[#2da5e8]"
           >
             Reintentar
@@ -152,6 +156,13 @@ function App() {
         {showAdminPanel ? (
           <AdminPanel
             onClose={() => setShowAdminPanel(false)}
+            articles={articles}
+            writers={writers}
+            categories={categories}
+            tags={tags}
+            subtags={subtags}
+            onArticleUpdate={handleArticleUpdate}
+            onArticleDelete={(id) => deleteArticle(id)}
             darkMode={darkMode}
           />
         ) : isWriterMode ? (

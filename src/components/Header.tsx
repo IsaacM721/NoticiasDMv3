@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Search, Menu, X, PenTool, User, Users, Moon, Sun } from 'lucide-react';
 
 interface HeaderProps {
   onWriterModeToggle: () => void;
