@@ -99,9 +99,9 @@ const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, da
       category: selectedCategory,
       status,
       slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-      seo_title: seoTitle || title,
-      seo_description: seoDescription || excerpt,
-      read_time: Math.ceil(content.split(' ').length / 200)
+      seoTitle: seoTitle || title,
+      seoDescription: seoDescription || excerpt,
+      readTime: Math.ceil(content.split(' ').length / 200)
     };
 
     onArticleCreate(newArticle);

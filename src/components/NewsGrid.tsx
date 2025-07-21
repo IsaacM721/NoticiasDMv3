@@ -123,9 +123,9 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
               <div className="flex items-center justify-between">
                 <div className={`flex items-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   <User className="h-4 w-4 mr-2" />
-                  {featuredArticle.writer?.name || 'Autor desconocido'}
+                  {featuredArticle.author || 'Autor desconocido'}
                   <span className="mx-2">•</span>
-                  {new Date(featuredArticle.published_at || featuredArticle.created_at).toLocaleDateString('es-ES')}
+                  {new Date(featuredArticle.publishedAt).toLocaleDateString('es-ES')}
                 </div>
                 
                 <button
@@ -153,7 +153,7 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
           >
             <div className="relative overflow-hidden">
               <img
-                src={article.featured_image || 'https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'}
+                src={article.featuredImage}
                 alt={article.title}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -197,11 +197,11 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
               }`}>
                 <div className="flex items-center">
                   <User className="h-4 w-4 mr-1" />
-                  {article.writer?.name || 'Autor desconocido'}
+                  {article.author || 'Autor desconocido'}
                 </div>
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-1" />
-                  {article.read_time} min
+                  {article.readTime} min
                 </div>
               </div>
             </div>
