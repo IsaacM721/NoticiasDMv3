@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
 import { Save, X, Eye, EyeOff, Tag, Plus, Trash2 } from 'lucide-react';
-import { Article, Tag as TagType, Category, Subtag } from '../types';
-import { categories, tags as availableTags, subtags as availableSubtags } from '../data/mockData';
 
 interface WriterPanelProps {
-  onArticleCreate: (article: Article) => void;
+  onArticleCreate: (article: any) => void;
   onCancel: () => void;
   darkMode: boolean;
+  categories: any[];
+  tags: any[];
+  subtags: any[];
 }
 
-const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, darkMode }) => {
+const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, darkMode, categories, tags: availableTags, subtags: availableSubtags }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [author, setAuthor] = useState('');
   const [featuredImage, setFeaturedImage] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [selectedTags, setSelectedTags] = useState<TagType[]>([]);
-  const [selectedSubtags, setSelectedSubtags] = useState<Subtag[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedTags, setSelectedTags] = useState<any[]>([]);
+  const [selectedSubtags, setSelectedSubtags] = useState<any[]>([]);
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDescription, setSeoDescription] = useState('');
   const [isPreview, setIsPreview] = useState(false);
@@ -26,10 +27,10 @@ const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, da
 
   // Filter subtags based on selected category
   const categorySubtags = selectedCategory 
-    ? availableSubtags.filter(subtag => subtag.categoryId === selectedCategory.id)
+    ? availableSubtags.filter(subtag => subtag.category_id === selectedCategory.id)
     : [];
 
-  const handleTagToggle = (tag: TagType) => {
+  const handleTagToggle = (tag: any) => {
     setSelectedTags(prev =>
       prev.find(t => t.id === tag.id)
         ? prev.filter(t => t.id !== tag.id)
@@ -37,7 +38,7 @@ const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, da
     );
   };
 
-  const handleSubtagToggle = (subtag: Subtag) => {
+  const handleSubtagToggle = (subtag: any) => {
     setSelectedSubtags(prev =>
       prev.find(s => s.id === subtag.id)
         ? prev.filter(s => s.id !== subtag.id)
@@ -47,7 +48,7 @@ const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, da
 
   const handleAddNewTag = () => {
     if (newTagName.trim()) {
-      const newTag: TagType = {
+      const newTag: any = {
         id: Date.now().toString(),
         name: newTagName.trim(),
         slug: newTagName.toLowerCase().replace(/\s+/g, '-'),
@@ -60,19 +61,19 @@ const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, da
 
   const handleAddNewSubtag = () => {
     if (newSubtagName.trim() && selectedCategory) {
-      const newSubtag: Subtag = {
+      const newSubtag: any = {
         id: Date.now().toString(),
         name: newSubtagName.trim(),
         slug: newSubtagName.toLowerCase().replace(/\s+/g, '-'),
         color: selectedCategory.color,
-        categoryId: selectedCategory.id
+        category_id: selectedCategory.id
       };
       setSelectedSubtags(prev => [...prev, newSubtag]);
       setNewSubtagName('');
     }
   };
 
-  const handleCategoryChange = (category: Category) => {
+  const handleCategoryChange = (category: any) => {
     setSelectedCategory(category);
     // Clear subtags when category changes
     setSelectedSubtags([]);
@@ -84,23 +85,23 @@ const WriterPanel: React.FC<WriterPanelProps> = ({ onArticleCreate, onCancel, da
       return;
     }
 
-    const newArticle: Article = {
+    const newArticle: any = {
       id: Date.now().toString(),
       title,
       content,
       excerpt: excerpt || content.substring(0, 200) + '...',
       author,
-      publishedAt: new Date(),
-      updatedAt: new Date(),
-      featuredImage: featuredImage || 'https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      featured_image: featuredImage || 'https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       tags: selectedTags,
       subtags: selectedSubtags,
       category: selectedCategory,
       status,
       slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-      seoTitle: seoTitle || title,
-      seoDescription: seoDescription || excerpt,
-      readTime: Math.ceil(content.split(' ').length / 200)
+      seo_title: seoTitle || title,
+      seo_description: seoDescription || excerpt,
+      read_time: Math.ceil(content.split(' ').length / 200)
     };
 
     onArticleCreate(newArticle);

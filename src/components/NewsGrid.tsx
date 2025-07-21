@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Clock, User, Tag, ArrowRight } from 'lucide-react';
-import { Article, Category } from '../types';
-import { categories, tags } from '../data/mockData';
 
 interface NewsGridProps {
-  articles: Article[];
-  onArticleSelect: (article: Article) => void;
+  articles: any[];
+  onArticleSelect: (article: any) => void;
   darkMode: boolean;
+  categories: any[];
+  tags: any[];
 }
 
-const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode }) => {
+const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode, categories, tags }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const filteredArticles = selectedCategory
-    ? articles.filter(article => article.category.id === selectedCategory)
+    ? articles.filter(article => article.category_id === selectedCategory)
     : articles;
 
   const featuredArticle = filteredArticles[0];
@@ -100,9 +100,9 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
               <div className="flex items-center space-x-3 mb-4">
                 <span
                   className="px-3 py-1 rounded-full text-sm font-medium text-white"
-                  style={{ backgroundColor: featuredArticle.category.color }}
+                  style={{ backgroundColor: featuredArticle.category?.color || '#36b7ff' }}
                 >
-                  {featuredArticle.category.name}
+                  {featuredArticle.category?.name || 'Sin categoría'}
                 </span>
                 <div className={`flex items-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   <Clock className="h-4 w-4 mr-1" />
@@ -123,9 +123,9 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
               <div className="flex items-center justify-between">
                 <div className={`flex items-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   <User className="h-4 w-4 mr-2" />
-                  {featuredArticle.author}
+                  {featuredArticle.writer?.name || 'Autor desconocido'}
                   <span className="mx-2">•</span>
-                  {featuredArticle.publishedAt.toLocaleDateString('es-ES')}
+                  {new Date(featuredArticle.published_at || featuredArticle.created_at).toLocaleDateString('es-ES')}
                 </div>
                 
                 <button
@@ -153,16 +153,16 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
           >
             <div className="relative overflow-hidden">
               <img
-                src={article.featuredImage}
+                src={article.featured_image || 'https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'}
                 alt={article.title}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute top-4 left-4">
                 <span
                   className="px-3 py-1 rounded-full text-sm font-medium text-white"
-                  style={{ backgroundColor: article.category.color }}
+                  style={{ backgroundColor: article.category?.color || '#36b7ff' }}
                 >
-                  {article.category.name}
+                  {article.category?.name || 'Sin categoría'}
                 </span>
               </div>
             </div>
@@ -179,7 +179,7 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
               </p>
               
               <div className="flex flex-wrap gap-2 mb-4">
-                {article.tags.slice(0, 2).map((tag) => (
+                {(article.tags || []).slice(0, 2).map((tag: any) => (
                   <span
                     key={tag.id}
                     className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
@@ -197,11 +197,11 @@ const NewsGrid: React.FC<NewsGridProps> = ({ articles, onArticleSelect, darkMode
               }`}>
                 <div className="flex items-center">
                   <User className="h-4 w-4 mr-1" />
-                  {article.author}
+                  {article.writer?.name || 'Autor desconocido'}
                 </div>
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-1" />
-                  {article.readTime} min
+                  {article.read_time} min
                 </div>
               </div>
             </div>

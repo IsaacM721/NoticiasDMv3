@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Search, Menu, X, PenTool, User, Users, Moon, Sun } from 'lucide-react';
-import { tags, subtags } from '../data/mockData';
 
 interface HeaderProps {
   onWriterModeToggle: () => void;
@@ -8,6 +7,8 @@ interface HeaderProps {
   isWriterMode: boolean;
   darkMode: boolean;
   onDarkModeToggle: () => void;
+  tags: any[];
+  subtags: any[];
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -15,19 +16,21 @@ const Header: React.FC<HeaderProps> = ({
   onWritersDirectoryToggle, 
   isWriterMode,
   darkMode,
-  onDarkModeToggle
+  onDarkModeToggle,
+  tags,
+  subtags
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Group subtags by category for better organization
-  const groupedSubtags = subtags.reduce((acc, subtag) => {
-    if (!acc[subtag.categoryId]) {
-      acc[subtag.categoryId] = [];
+  const groupedSubtags = subtags.reduce((acc: any, subtag: any) => {
+    if (!acc[subtag.category_id]) {
+      acc[subtag.category_id] = [];
     }
-    acc[subtag.categoryId].push(subtag);
+    acc[subtag.category_id].push(subtag);
     return acc;
-  }, {} as Record<string, typeof subtags>);
+  }, {});
 
   const categoryNames = {
     '1': 'Política',
@@ -177,10 +180,10 @@ const Header: React.FC<HeaderProps> = ({
               {Object.entries(groupedSubtags).map(([categoryId, categorySubtags]) => (
                 <section key={categoryId}>
                   <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {categoryNames[categoryId as keyof typeof categoryNames]}
+                    {categoryNames[categoryId as keyof typeof categoryNames] || 'Otros'}
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {categorySubtags.sort((a, b) => a.name.localeCompare(b.name)).map((subtag) => (
+                    {(categorySubtags as any[]).sort((a, b) => a.name.localeCompare(b.name)).map((subtag) => (
                       <a
                         key={subtag.id}
                         href={`#subtag-${subtag.slug}`}

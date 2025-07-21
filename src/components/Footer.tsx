@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, PenTool, Lock } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin, PenTool, Lock, Settings } from 'lucide-react';
 
 interface FooterProps {
   darkMode: boolean;
+  onAdminAccess?: () => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ darkMode }) => {
+const Footer: React.FC<FooterProps> = ({ darkMode, onAdminAccess }) => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   const [password, setPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [error, setError] = useState('');
+  const [adminError, setAdminError] = useState('');
   const currentYear = new Date().getFullYear();
 
   const handleWriteAccess = () => {
@@ -21,9 +25,26 @@ const Footer: React.FC<FooterProps> = ({ darkMode }) => {
     }
   };
 
+  const handleAdminAccess = () => {
+    if (adminPassword === 'admin2025noticiasdm') {
+      setShowAdminModal(false);
+      setAdminPassword('');
+      setAdminError('');
+      onAdminAccess?.();
+    } else {
+      setAdminError('Contraseña incorrecta');
+      setTimeout(() => setAdminError(''), 3000);
+    }
+  };
+
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleWriteAccess();
+  };
+
+  const handleAdminSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleAdminAccess();
   };
 
   return (
@@ -98,13 +119,23 @@ const Footer: React.FC<FooterProps> = ({ darkMode }) => {
               
               {/* Writer Access Button */}
               <div className="pt-4">
-                <button
-                  onClick={() => setShowPasswordModal(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-[#36b7ff] text-white rounded-lg hover:bg-[#2da5e8] transition-colors duration-200 font-medium"
-                >
-                  <PenTool className="h-4 w-4" />
-                  <span>Redactar Noticia</span>
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setShowPasswordModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#36b7ff] text-white rounded-lg hover:bg-[#2da5e8] transition-colors duration-200 font-medium w-full"
+                  >
+                    <PenTool className="h-4 w-4" />
+                    <span>Redactar Noticia</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowAdminModal(true)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 font-medium w-full"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Panel Admin</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -130,6 +161,82 @@ const Footer: React.FC<FooterProps> = ({ darkMode }) => {
           </div>
         </div>
       </footer>
+
+      {/* Admin Modal */}
+      {showAdminModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`rounded-lg p-6 w-full max-w-md ${
+            darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Settings className="h-5 w-5 mr-2 text-[#36b7ff]" />
+                Acceso de Administrador
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAdminModal(false);
+                  setAdminPassword('');
+                  setAdminError('');
+                }}
+                className={`text-gray-500 hover:text-gray-700 ${darkMode ? 'hover:text-gray-300' : ''}`}
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleAdminSubmit} className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Contraseña de Administrador
+                </label>
+                <input
+                  type="password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#36b7ff] focus:border-transparent ${
+                    darkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                  placeholder="Ingresa la contraseña de admin"
+                  required
+                />
+              </div>
+              
+              {adminError && (
+                <p className="text-red-500 text-sm">{adminError}</p>
+              )}
+              
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAdminModal(false);
+                    setAdminPassword('');
+                    setAdminError('');
+                  }}
+                  className={`flex-1 px-4 py-2 border rounded-lg transition-colors duration-200 ${
+                    darkMode 
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-[#36b7ff] text-white rounded-lg hover:bg-[#2da5e8] transition-colors duration-200"
+                >
+                  Acceder
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Password Modal */}
       {showPasswordModal && (
